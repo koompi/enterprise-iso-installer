@@ -1,0 +1,15 @@
+[Unit]
+Description=Script
+After=getty.target reflector.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=idle
+RemainAfterExit=no
+ExecStart=/usr/bin/installer.sh
+StandardInput=tty-force
+StandardOutput=inherit
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
