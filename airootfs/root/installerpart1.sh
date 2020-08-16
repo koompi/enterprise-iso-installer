@@ -1,8 +1,8 @@
 #!/bin/bash
 
 check_internet(){
-
-	if ping -q -4 -c 1 -W 1 google.com > /dev/null &
+	wget -q --spider http://google.com
+	if [[ $? -eq 0 ]];
 	then
 		echo "true" 
 	else
@@ -126,7 +126,7 @@ choose_part(){
 	do
 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" --menu \
 	"\nPick one suitable Partition to begin installation of $1. \n\nIt is recommended that it \
-is at least $2" 30 140 \
+is at least $2" 30 100 \
 	$countPart $partmenu 2>/tmp/temp1
 	
 	if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" \
@@ -136,35 +136,6 @@ is at least $2" 10 100);
 		break
 	fi
 	done
-}
-
-choose_boot(){
-
-	choose_part "BOOTLOADER" "512MB"
-	selected_boot=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-	echo $selected_boot >> /tmp/selected_boot
-	mkfs.fat -F32 $selected_boot
-	echo $selected_boot
-
-}
-
-choose_swap(){
-
-	choose_part "SWAP" "the same as your current RAM"
-	selected_swap=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-	mkswap $selected_swap
-	swapon $selected_swap
-	echo $selected_swap
-
-}
-
-choose_root(){
-
-	choose_part "ROOT" "enough for install the whole linux"
-	selected_root=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-	mkfs.ext4 $selected_root
-	echo $selected_root
-
 }
 
 while true;
@@ -191,7 +162,7 @@ while true;
 do
 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --menu \
 	"\nPick one suitable harddisk to begin installation process. If your disk is new, you will \
-be asked to format your disk in one label type.\n\nNote: GPT is recommended." 30 140 \
+be asked to format your disk in one label type.\n\nNote: GPT is recommended." 30 100 \
 	$countDisk $diskmenu 2>/tmp/temp
 	
 	if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" \
@@ -207,7 +178,7 @@ to choose from in order to partition your disk. \n\nNew is for partition free sp
 \n\nDelete is for remove existing partition and convert it back into free space. \n\nResize is for shrinking \
 already existing partition to make some free space.\n\nWrite is for making permanent changes that you have \
 done with the various option presented above.\n\n\nNote: You must have at least one 512MB BOOTLOADER partition, \
-one SWAP partition, and a ROOT partition" 20 150
+one SWAP partition, and a ROOT partition" 20 100
 
 selected_disk=$(print_selected_disk /tmp/temp /tmp/ListDisk)
 
@@ -216,7 +187,7 @@ do
 	cfdisk $selected_disk
 	if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --yesno "Are \
 you sure you have finished partitioning? You must have at least one 512MB BOOTLOADER partition, one SWAP \
-partition and one ROOT partition" 10 150);
+partition and one ROOT partition" 10 100);
 	then 
 		break
 	fi
@@ -230,7 +201,7 @@ while true;
 do
 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" --menu \
 	"\nPlease Select which type of partition you would like to create. Click Done when you have finished \
-Partitionning" 30 140 4 \
+Partitionning" 30 100 4 \
 	"1" "Create Bootloader Partition" \
 	"2" "Create Swap Partition" \
 	"3" "Create Root Partition" \
@@ -259,8 +230,8 @@ done
 pacman -Sy
 mount $selected_root /mnt
 
-pacstrap /mnt base linux linux-firmware vim nano man-db man-pages texinfo \
-networkmanager sudo dhclient libnewt bash-completion grub efibootmgr parted;
+pacstrap /mnt base base-devel linux linux-firmware vim nano man-db man-pages \
+networkmanager dhclient libnewt bash-completion grub efibootmgr parted openssh wget;
 genfstab -U /mnt >> /mnt/etc/fstab
 cp installerpart2.sh /mnt
 cp /tmp/selected_disk /mnt
@@ -296,7 +267,7 @@ shutdown_machine(){
 
 TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Exit Prompt ]" --menu \
 "\nThe installation process has finished. What do you want to do next? In case you had any problem, you\
- may need to return to commandline" 30 140 3 \
+ may need to return to commandline" 30 100 3 \
 "1" "Shutdown" \
 "2" "reboot" \
 "3" "Return to commandline" 2>/tmp/temp2

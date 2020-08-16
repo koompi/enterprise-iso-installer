@@ -85,8 +85,8 @@ mv /etc/sudoers-new /etc/sudoers
 systemctl enable NetworkManager
 systemctl enable sshd
 
-username=$(TERM=ansi whiptail --clear --title "Create a new administrator user" --inputbox "\nPlease enter an username for your new account\n" 8 78 3>&1 1>&2 2>&3)
-password=$(TERM=ansi whiptail --clear --passwordbox "\nPlease enter your password for administrator user\n" 8 78 --title "password dialog" 3>&1 1>&2 2>&3)
+username=$(TERM=ansi whiptail --clear --title "Create a new administrator user" --inputbox "\nPlease enter an username for your new account\n" 8 80 3>&1 1>&2 2>&3)
+password=$(TERM=ansi whiptail --clear --passwordbox "\nPlease enter your password for administrator user\n" 8 80 --title "password dialog" 3>&1 1>&2 2>&3)
 
 username=$(echo $username | tr '[:upper:]' '[:lower:]')
 
