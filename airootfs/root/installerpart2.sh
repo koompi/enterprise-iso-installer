@@ -15,9 +15,11 @@ id_system() {
       # Mount efivarfs if it is not already mounted
     	if [[ -z $(mount | grep /sys/firmware/efi/efivars) ]]; 
 		then
-    	mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+    		mount -t efivarfs efivarfs /sys/firmware/efi/efivars
     	fi
+
     	SYSTEM="UEFI"
+		
 	else
     	SYSTEM="BIOS"
     fi
@@ -32,32 +34,27 @@ selected_disk=$(cat selected_disk)
 timedatectl set-timezone Asia/Phnom_Penh
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 export LANG=en_US.UTF-8
-echo "Enterprise-Koompi" > /etc/hostname
+
+hostname=$(TERM=ansi whiptail --clear --title "[ Hostname ]" --inputbox "\nPlease enter a hostname for your new linux\n" 8 80 3>&1 1>&2 2>&3)
+
+echo "$hostname" > /etc/hostname
 echo "127.0.0.1	localhost" >> /etc/hosts
 echo "::1		localhost" >> /etc/hosts
-echo "127.0.1.1	Enterprise-Koompi" >> /etc/hosts
+echo "127.0.1.1	$hostname" >> /etc/hosts
 
 system=$(id_system)
 
-if ! [[ -z "$system" ]];
+if [[ "$system" == "UEFI" ]];
 then
-	if [[ "$system" == "UEFI" ]];
-	then
-		mkdir /boot/efi && 
-		mount $selected_boot /boot/efi && 
-		grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi && 
-		grub-mkconfig -o /boot/grub/grub.cfg && 
-		grubstatus="true"
-	else
-		parted $selected_disk set 1 bios_grub on &&
-		grub-install $selected_disk && 
-		grub-mkconfig -o /boot/grub/grub.cfg && 
-		grubstatus="true"
-	fi
+	mkdir /boot/efi && 
+	mount $selected_boot /boot/efi && 
+	grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi && 
+	grub-mkconfig -o /boot/grub/grub.cfg
 else
-	system="BIOS"
+	parted $selected_disk set 1 bios_grub on &&
+	grub-install $selected_disk && 
+	grub-mkconfig -o /boot/grub/grub.cfg
 fi
-
 
 check="false"
 

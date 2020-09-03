@@ -1,7 +1,7 @@
 #!/bin/bash
 
 check_internet(){
-	wget -q --spider http://google.com
+	wget -q --spider http://google.com -T 1
 	if [[ $? -eq 0 ]];
 	then
 		echo "true" 
@@ -240,29 +240,14 @@ cp /tmp/selected_boot /mnt
 arch-chroot /mnt ./installerpart2.sh
 arch-chroot /mnt rm -rf selected_disk selected_boot installerpart2.sh
 
-restart_machine(){
-
+count_down(){
 	for (( i=10; i>=1; i-- ))
 	do
 		TERM=ansi whiptail --backtitle "Koompi Enterprise Installer" --title "[ Koompi Enterprise Installer ]" --infobox \
-	"\nPlease Remove the installation media. This system will restart in $i seconds" 8 80
+	"\nPlease Remove the installation media after countdown is complete. This system will restart in $i seconds" 8 80
 		sleep 1
 	done
 
-	reboot
-}
-
-
-shutdown_machine(){
-
-	for (( i=10; i>=1; i-- ))
-	do
-		TERM=ansi whiptail --backtitle "Koompi Enterprise Installer" --title "[ Koompi Enterprise Installer ]" --infobox \
-	"\nPlease Remove the installation media. This system will shutdown in $i seconds" 8 80
-		sleep 1
-	done
-
-	shutdown now
 }
 
 TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Exit Prompt ]" --menu \
@@ -273,9 +258,11 @@ TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ 
 "3" "Return to commandline" 2>/tmp/temp2
 
 case $(cat /tmp/temp2) in
-	"1") shutdown_machine
+	"1") count_down
+		 poweroff
 			;;
-	"2") restart_machine
+	"2") count_down
+		 reboot
 			;; 
 	"3") arch-chroot /mnt
 			;;

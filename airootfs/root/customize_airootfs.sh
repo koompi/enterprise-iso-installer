@@ -4,13 +4,9 @@
 
 set -e -u
 
-echo 'Warning: customize_airootfs.sh is deprecated! Support for it will be removed in a future archiso version.'
+# Warning: customize_airootfs.sh is deprecated! Support for it will be removed in a future archiso version.
 
 sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 
-sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
-
-systemctl enable installer.service
-
-
+#sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist

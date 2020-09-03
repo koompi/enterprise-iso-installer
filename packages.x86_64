@@ -74,9 +74,9 @@ wvdial
 xfsprogs
 xl2tpd
 zsh
-texinfo 
-networkmanager 
-libnewt 
-bash-completion 
-grub 
+texinfo
+networkmanager
+libnewt
+bash-completion
+grub
 wget
