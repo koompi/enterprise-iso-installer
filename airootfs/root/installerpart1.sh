@@ -1,7 +1,7 @@
 #!/bin/bash
 
 check_internet(){
-	wget -q --spider http://google.com -T 1
+	wget -q --spider http://google.com
 	if [[ $? -eq 0 ]];
 	then
 		echo "true" 
@@ -10,6 +10,30 @@ check_internet(){
 	fi
 
 }
+
+# read_wifi(){
+
+# 	rm -rf /tmp/ReadWifiTmp /tmp/ReadWifi
+# 	nmcli dev wifi rescan
+# 	nmcli -f SSID dev wifi | tee /tmp/ReadWifiTmp
+
+# 	while read -r line;
+# 	do
+# 		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
+# 		then
+# 			echo "$line" | sed -e 's/ /_/g' >> /tmp/ReadWifi
+# 		fi
+# 	done <<< $(cat /tmp/ReadWifiTmp)
+
+# 	while read -r line;
+# 	do
+# 		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
+# 		then
+# 			echo "$line" >> /tmp/ReadWifiNoDash
+# 		fi
+# 	done <<< $(cat /tmp/ReadWifiTmp)
+
+# }
 
 print_all_disk(){
 
@@ -109,17 +133,31 @@ print_selected_part(){
 
 	while read -r line;
 	do
-	if [[ "$line" == $storeOpt1* ]]
-	then 
+		if [[ "$line" == $storeOpt1* ]]
+		then 
 
-		storePart=$(echo $line | awk -F' ' '{printf $2}' | sed -e 's/_/ /g')
-		storePart=$(echo $storePart |awk '{printf $1}')
+			storePart=$(echo $line | awk -F' ' '{printf $2}' | sed -e 's/_/ /g')
+			storePart=$(echo $storePart |awk '{printf $1}')
 
-	fi
+		fi
 	done <<< "$(cat $2)"
 	echo $storePart
 
 }
+
+# print_selected_wifi(){
+	
+# 	storeOpt1=$(cat $1)
+
+# 	while read -r line;
+# 	do
+# 		if [[ "$line" == $storeOpt1* ]];
+# 		then
+# 			storeWifi=$(echo $line | awk -F' ' '{printf $2}')
+# 		fi
+# 	done <<< "$(cat $2)"
+# 	echo $storeWifi
+# }
 
 choose_part(){
 	while true;
@@ -145,6 +183,24 @@ do
 	then
 		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
 		"You are not connected to the Internet. This message will fade once you are connect to the Internet." 15 100
+
+		if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --yesno \
+		"Do you want to connect to wifi" 10 100);
+		then 
+			# read_wifi
+			# countWifi=$(count_line /tmp/ReadWifi)
+			# wifimenudash=$(menu_list_maker $countWifi /tmp/ReadWifi /tmp/ListWifi)
+			# rm -rf /tmp/ListWifi
+			# wifimenu=$(menu_list_maker $countWifi /tmp/ReadWifiNoDash /tmp/ListWifi)
+			# TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Connect to Wifi ]" --menu \
+			# "\nPick one wifi to start to connect. You will be asked for password afterward" 30 100 $countWifi $wifimenudash 2>/tmp/tempp
+
+			# selected_wifi=$(print_selected_wifi /tmp/tempp /tmp/ListWifi)
+			# password=$(TERM=ansi whiptail --clear --title "[ Password Dialog ]" --passwordbox \
+			# "\nPlease enter your password for $selected_wifi\n" 8 80  3>&1 1>&2 2>&3)
+
+			# nmcli device wifi connection $selected_wifi password $password
+		fi
 	else 
 		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
 		"Welcome to linux Installer. Press Enter to continue." 15 100
@@ -244,10 +300,9 @@ count_down(){
 	for (( i=10; i>=1; i-- ))
 	do
 		TERM=ansi whiptail --backtitle "Koompi Enterprise Installer" --title "[ Koompi Enterprise Installer ]" --infobox \
-	"\nPlease Remove the installation media after countdown is complete. This system will restart in $i seconds" 8 80
+	"\nPlease Remove the installation media after countdown is complete. This system will restart in $i seconds" 8 100
 		sleep 1
 	done
-
 }
 
 TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Exit Prompt ]" --menu \

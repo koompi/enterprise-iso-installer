@@ -28,6 +28,14 @@ id_system() {
 
 }
 
+hostname=$(TERM=ansi whiptail --clear --title "[ Hostname Dialog ]" --inputbox \
+"\nPlease enter a hostname for your new linux\n" 8 80 3>&1 1>&2 2>&3)
+username=$(TERM=ansi whiptail --clear --title "[ Create a new administrator user ]" --inputbox \
+"\nPlease enter an username for your new account\n" 8 80 3>&1 1>&2 2>&3)
+password=$(TERM=ansi whiptail --clear --title "[ Password Dialog ]" --passwordbox \
+"\nPlease enter your password for administrator user\n" 8 80  3>&1 1>&2 2>&3)
+
+
 selected_boot=$(cat selected_boot)
 selected_disk=$(cat selected_disk) 
 
@@ -35,7 +43,6 @@ timedatectl set-timezone Asia/Phnom_Penh
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 export LANG=en_US.UTF-8
 
-hostname=$(TERM=ansi whiptail --clear --title "[ Hostname ]" --inputbox "\nPlease enter a hostname for your new linux\n" 8 80 3>&1 1>&2 2>&3)
 
 echo "$hostname" > /etc/hostname
 echo "127.0.0.1	localhost" >> /etc/hosts
@@ -81,9 +88,6 @@ mv /etc/sudoers-new /etc/sudoers
 
 systemctl enable NetworkManager
 systemctl enable sshd
-
-username=$(TERM=ansi whiptail --clear --title "Create a new administrator user" --inputbox "\nPlease enter an username for your new account\n" 8 80 3>&1 1>&2 2>&3)
-password=$(TERM=ansi whiptail --clear --passwordbox "\nPlease enter your password for administrator user\n" 8 80 --title "password dialog" 3>&1 1>&2 2>&3)
 
 username=$(echo $username | tr '[:upper:]' '[:lower:]')
 
