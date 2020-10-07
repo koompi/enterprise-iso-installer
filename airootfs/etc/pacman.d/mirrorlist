@@ -5,7 +5,7 @@
 ##
 
 ## Singapore
-#Server = http://mirror.0x.sg/archlinux/$repo/os/$arch
+Server = http://mirror.0x.sg/archlinux/$repo/os/$arch
 ## Hong Kong
 Server = http://mirror.xtom.com.hk/archlinux/$repo/os/$arch
 ## France
@@ -77,7 +77,7 @@ Server = http://www.gtlib.gatech.edu/pub/archlinux/$repo/os/$arch
 ## Bulgaria
 Server = http://mirrors.netix.net/archlinux/$repo/os/$arch
 ## Singapore
-Server = http://mirror.aktkn.sg/archlinux/$repo/os/$arch
+#Server = http://mirror.aktkn.sg/archlinux/$repo/os/$arch
 ## Germany
 Server = http://ftp.uni-kl.de/pub/linux/archlinux/$repo/os/$arch
 ## United States
@@ -574,4 +574,3 @@ Server = http://mirror.cse.iitk.ac.in/archlinux/$repo/os/$arch
 Server = http://iad.mirrors.misaka.one/archlinux/$repo/os/$arch
 ## South Korea
 Server = http://ftp.kaist.ac.kr/ArchLinux/$repo/os/$arch
-

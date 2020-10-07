@@ -11,29 +11,29 @@ check_internet(){
 
 }
 
-# read_wifi(){
+read_wifi(){
 
-# 	rm -rf /tmp/ReadWifiTmp /tmp/ReadWifi
-# 	nmcli dev wifi rescan
-# 	nmcli -f SSID dev wifi | tee /tmp/ReadWifiTmp
+	rm -rf /tmp/ReadWifiTmp /tmp/ReadWifi
+	nmcli dev wifi rescan
+	nmcli -f SSID dev wifi | tee /tmp/ReadWifiTmp
 
-# 	while read -r line;
-# 	do
-# 		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
-# 		then
-# 			echo "$line" | sed -e 's/ /_/g' >> /tmp/ReadWifi
-# 		fi
-# 	done <<< $(cat /tmp/ReadWifiTmp)
+	while read -r line;
+	do
+		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
+		then
+			echo "$line" | sed -e 's/ /_/g' >> /tmp/ReadWifi
+		fi
+	done <<< $(cat /tmp/ReadWifiTmp)
 
-# 	while read -r line;
-# 	do
-# 		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
-# 		then
-# 			echo "$line" >> /tmp/ReadWifiNoDash
-# 		fi
-# 	done <<< $(cat /tmp/ReadWifiTmp)
+	while read -r line;
+	do
+		if [[ "$line" != SSID* ]] && [[ "$line" != "--" ]];
+		then
+			echo "$line" >> /tmp/ReadWifiNoDash
+		fi
+	done <<< $(cat /tmp/ReadWifiTmp)
 
-# }
+}
 
 print_all_disk(){
 
@@ -145,21 +145,22 @@ print_selected_part(){
 
 }
 
-# print_selected_wifi(){
+print_selected_wifi(){
 	
-# 	storeOpt1=$(cat $1)
+	storeOpt1=$(cat $1)
 
-# 	while read -r line;
-# 	do
-# 		if [[ "$line" == $storeOpt1* ]];
-# 		then
-# 			storeWifi=$(echo $line | awk -F' ' '{printf $2}')
-# 		fi
-# 	done <<< "$(cat $2)"
-# 	echo $storeWifi
-# }
+	while read -r line;
+	do
+		if [[ "$line" == $storeOpt1* ]];
+		then
+			storeWifi=$(echo $line | awk -F' ' '{printf $2}')
+		fi
+	done <<< "$(cat $2)"
+	echo $storeWifi
+}
 
 choose_part(){
+
 	while true;
 	do
 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" --menu \
@@ -176,92 +177,133 @@ is at least $2" 10 100);
 	done
 }
 
-while true;
-do
-	internet=$(check_internet)
-	if [[ "$internet" == "false" ]];
-	then
-		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
-		"You are not connected to the Internet. This message will fade once you are connect to the Internet." 15 100
+start_check(){
+	while true;
+	do
+		internet=$(check_internet)
+		if [[ "$internet" == "false" ]];
+		then
+			TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
+			"You are not connected to the Internet. This message will fade once you are connect to the Internet." 15 100
 
-		if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --yesno \
-		"Do you want to connect to wifi" 10 100);
-		then 
-			# read_wifi
-			# countWifi=$(count_line /tmp/ReadWifi)
-			# wifimenudash=$(menu_list_maker $countWifi /tmp/ReadWifi /tmp/ListWifi)
-			# rm -rf /tmp/ListWifi
-			# wifimenu=$(menu_list_maker $countWifi /tmp/ReadWifiNoDash /tmp/ListWifi)
-			# TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Connect to Wifi ]" --menu \
-			# "\nPick one wifi to start to connect. You will be asked for password afterward" 30 100 $countWifi $wifimenudash 2>/tmp/tempp
+			# if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --yesno \
+			# "Do you want to connect to wifi" 10 100);
+			# then 
+			# 	setup_wifi
+			# fi
 
-			# selected_wifi=$(print_selected_wifi /tmp/tempp /tmp/ListWifi)
-			# password=$(TERM=ansi whiptail --clear --title "[ Password Dialog ]" --passwordbox \
-			# "\nPlease enter your password for $selected_wifi\n" 8 80  3>&1 1>&2 2>&3)
-
-			# nmcli device wifi connection $selected_wifi password $password
+		else 
+			TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
+			"Welcome to linux Installer. Press Enter to continue." 15 100
+			break
 		fi
-	else 
-		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Welcome to Installer ]" --msgbox \
-		"Welcome to linux Installer. Press Enter to continue." 15 100
-		break
-	fi
-done
+	done
+}
 
+setup_wifi(){
+	read_wifi
+	countWifi=$(count_line /tmp/ReadWifi)
+	wifimenudash=$(menu_list_maker $countWifi /tmp/ReadWifi /tmp/ListWifi)
+	rm -rf /tmp/ListWifi
+	wifimenu=$(menu_list_maker $countWifi /tmp/ReadWifiNoDash /tmp/ListWifi)
+	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Connect to Wifi ]" --menu \
+	"\nPick one wifi to start to connect. You will be asked for password afterward" 30 100 $countWifi $wifimenudash 2>/tmp/tempp
 
-print_all_disk
-countDisk=$(count_line /tmp/ReadDisk)
-diskmenu=$(menu_list_maker $countDisk /tmp/ReadDisk /tmp/ListDisk)
+	selected_wifi=$(print_selected_wifi /tmp/tempp /tmp/ListWifi)
+	password=$(TERM=ansi whiptail --clear --title "[ Password Dialog ]" --passwordbox \
+	"\nPlease enter your password for $selected_wifi\n" 8 80  3>&1 1>&2 2>&3)
 
+	nmcli device wifi connection $selected_wifi password $password
+}
 
-while true;
-do
-	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --menu \
-	"\nPick one suitable harddisk to begin installation process. If your disk is new, you will \
+setup_disk(){
+
+	print_all_disk
+	countDisk=$(count_line /tmp/ReadDisk)
+	diskmenu=$(menu_list_maker $countDisk /tmp/ReadDisk /tmp/ListDisk)
+
+	while true;
+	do
+		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --menu \
+		"\nPick one suitable harddisk to begin installation process. If your disk is new, you will \
 be asked to format your disk in one label type.\n\nNote: GPT is recommended." 30 100 \
-	$countDisk $diskmenu 2>/tmp/temp
-	
-	if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" \
-	--yesno "Are you sure you have choose the correct disk?" 10 100);
-	then 
-		break
-	fi
-done
+		$countDisk $diskmenu 2>/tmp/temp
+		
+		if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" \
+		--yesno "Are you sure you have choose the correct disk?" 10 100);
+		then 
+			break
+		fi
+	done
 
-TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --msgbox \
-"You will be presented with 8 options such as New, Delete, Resize, Quit, Type, Help, Write, Dump \
+	selected_disk=$(print_selected_disk /tmp/temp /tmp/ListDisk)
+
+	# if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" \
+	# 	--yesno "Do you also want to set up extra disk? Example: as a storage server for Active Directory" 10 80);
+	# then 
+	# 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --menu \
+	# "\nPick the extra hard disk to begin the installaton" 30 100 \
+	# 	$countDisk $diskmenu 2>/tmp/temp
+	# 	selected_extra_disk=$(print_selected_disk /tmp/temp /tmp/ListDisk)
+	# fi
+}
+
+setup_partition(){
+
+	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --msgbox \
+	"You will be presented with 8 options such as New, Delete, Resize, Quit, Type, Help, Write, Dump \
 to choose from in order to partition your disk. \n\nNew is for partition free space into usable partition \
 \n\nDelete is for remove existing partition and convert it back into free space. \n\nResize is for shrinking \
 already existing partition to make some free space.\n\nWrite is for making permanent changes that you have \
 done with the various option presented above.\n\n\nNote: You must have at least one 512MB BOOTLOADER partition, \
 one SWAP partition, and a ROOT partition" 20 100
 
-selected_disk=$(print_selected_disk /tmp/temp /tmp/ListDisk)
-
-while true;
-do
-	cfdisk $selected_disk
-	if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --yesno "Are \
-you sure you have finished partitioning? You must have at least one 512MB BOOTLOADER partition, one SWAP \
-partition and one ROOT partition" 10 100);
-	then 
+	while true;
+	do
+		cfdisk $selected_disk
+		if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --yesno "Are \
+you sure you have finished partitioning? You must have at least one 512MB BOOTLOADER partition, one SWAP partition and one \
+ROOT partition" 10 100);
+		then 
+			break
+		fi
+	done
+	if [[ -z "$selected_extra_disk"  ]];
+	then
 		break
+	else 
+		TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" --msgbox \
+		"Since you have chosen to create extra disk, you must create some partitions" 15 100
+		while true;
+		do
+			cfdisk $selected_extra_disk
+			if (TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Disk ]" --yesno "Are \
+you sure you have finished partitioning?" 10 100);
+			then 
+				break
+			fi
+		done
 	fi
-done
 
-print_all_part $selected_disk
-countPart=$(count_line /tmp/ReadPart)
-partmenu=$(menu_list_maker $countPart /tmp/ReadPart /tmp/ListPart)
+}
 
-while true;
-do
+
+install_partition(){
+
+	print_all_part $selected_disk
+	countPart=$(count_line /tmp/ReadPart)
+	partmenu=$(menu_list_maker $countPart /tmp/ReadPart /tmp/ListPart)
+
+	while true;
+	do
 	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Linux Partition ]" --menu \
-	"\nPlease Select which type of partition you would like to create. Click Done when you have finished \
-Partitionning" 30 100 4 \
-	"1" "Create Bootloader Partition" \
-	"2" "Create Swap Partition" \
-	"3" "Create Root Partition" \
-	"4" "Done" 2>/tmp/temp
+	"\nPlease Select which type of partition you would like to create. Click Done when you have finished Partitionning" \
+	30 100 4 \
+"1" "Create Bootloader Partition" \
+"2" "Create Swap Partition" \
+"3" "Create Root Partition" \
+"4" "Create Extra Logical Partition" \
+"5" "Done" 2>/tmp/temp
 
 	case $(cat /tmp/temp) in
         "1") choose_part "BOOTLOADER" "512MB"
@@ -278,23 +320,32 @@ Partitionning" 30 100 4 \
 			 selected_root=$(print_selected_part /tmp/temp1 /tmp/ListPart)
 			 mkfs.ext4 $selected_root
 			 ;;
+		"4") choose_part "Extra" "any free partition"
+			 selected_extra=$(print_selected_part /tmp/temp1 /tmp/ListPart)
+			 mkfs.ext4 $selected_extra
+			 ;;
 		  *) break
-		     ;;
+		  	 ;;
     esac
 done
 
-pacman -Sy
-mount $selected_root /mnt
+}
 
-pacstrap /mnt base base-devel linux linux-firmware vim nano man-db man-pages \
-networkmanager dhclient libnewt bash-completion grub efibootmgr parted openssh wget;
-genfstab -U /mnt >> /mnt/etc/fstab
-cp installerpart2.sh /mnt
-cp /tmp/selected_disk /mnt
-cp /tmp/selected_boot /mnt
+install_packages(){
 
-arch-chroot /mnt ./installerpart2.sh
-arch-chroot /mnt rm -rf selected_disk selected_boot installerpart2.sh
+	pacman -Sy
+	mount $selected_root /mnt
+
+	pacstrap /mnt base base-devel linux linux-firmware vim nano man-db man-pages \
+	networkmanager dhclient libnewt bash-completion grub efibootmgr parted openssh wget;
+	genfstab -U /mnt >> /mnt/etc/fstab
+	cp installerpart2.sh /mnt
+	cp /tmp/selected_disk /mnt
+	cp /tmp/selected_boot /mnt
+
+	arch-chroot /mnt ./installerpart2.sh
+	arch-chroot /mnt rm -rf selected_disk selected_boot installerpart2.sh
+}
 
 count_down(){
 	for (( i=10; i>=1; i-- ))
@@ -305,9 +356,10 @@ count_down(){
 	done
 }
 
-TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Exit Prompt ]" --menu \
-"\nThe installation process has finished. What do you want to do next? In case you had any problem, you\
- may need to return to commandline" 30 100 3 \
+the_end(){
+	TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Exit Prompt ]" --menu \
+	"\nThe installation process has finished. What do you want to do next? In case you had any problem, you \
+may need to return to commandline" 30 100 3 \
 "1" "Shutdown" \
 "2" "reboot" \
 "3" "Return to commandline" 2>/tmp/temp2
@@ -324,3 +376,16 @@ case $(cat /tmp/temp2) in
 		*) break
 			;;
 esac
+}
+
+start_check
+
+setup_disk
+
+setup_partition
+
+install_partition
+
+install_packages
+
+the_end

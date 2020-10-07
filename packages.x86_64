@@ -4,7 +4,6 @@ amd-ucode
 arch-install-scripts
 b43-fwcutter
 base
-base-devel
 bind-tools
 broadcom-wl
 btrfs-progs
@@ -32,7 +31,6 @@ ipw2200-fw
 iwd
 lftp
 linux
-linux-atm
 linux-firmware
 lsscsi
 lvm2
@@ -77,6 +75,4 @@ zsh
 texinfo
 networkmanager
 libnewt
-bash-completion
-grub
 wget
