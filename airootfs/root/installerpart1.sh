@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function banner(){
+    echo -e "XXX\n$1\n$2\nXXX"
+}
+
+
 check_internet(){
 	wget -q --spider http://google.com
 	if [[ $? -eq 0 ]];
@@ -309,20 +314,20 @@ install_partition(){
         "1") choose_part "BOOTLOADER" "512MB"
 			 selected_boot=$(print_selected_part /tmp/temp1 /tmp/ListPart)
 			 echo $selected_boot >> /tmp/selected_boot
-			 mkfs.fat -F32 $selected_boot
+			 mkfs.fat -q -F32 $selected_boot  2>/dev/null
              ;;
         "2") choose_part "SWAP" "the same as your current RAM"
 			 selected_swap=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-			 mkswap $selected_swap
-			 swapon $selected_swap
+			 mkswap $selected_swap  2>/dev/null
+			 swapon $selected_swap  2>/dev/null
              ;; 
         "3") choose_part "ROOT" "enough for install the whole linux"
 			 selected_root=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-			 mkfs.ext4 $selected_root
+			 mkfs.ext4 -q -F $selected_root 2>/dev/null
 			 ;;
 		"4") choose_part "Extra" "any free partition"
 			 selected_extra=$(print_selected_part /tmp/temp1 /tmp/ListPart)
-			 mkfs.ext4 $selected_extra
+			 mkfs.ext4 -q -F $selected_extra  2>/dev/null
 			 ;;
 		  *) break
 		  	 ;;
@@ -333,27 +338,45 @@ done
 
 install_packages(){
 
-	pacman -Sy
+	progress=0
+	banner "$progress" "Installing neccessary package..."
+	echo -e "\n[koompi]\nSigLevel = Never\nServer = https://repo.koompi.org/kmp-apps" | sudo tee -a /etc/pacman.conf
+	pacman -Syy 2>/dev/null
 	mount $selected_root /mnt
 
-	pacstrap /mnt base base-devel linux linux-firmware vim nano man-db man-pages \
-	networkmanager dhclient libnewt bash-completion grub efibootmgr parted openssh wget;
-	genfstab -U /mnt >> /mnt/etc/fstab
+	pkg=("base" "linux" "linux-firmware"  "base-devel" "vim" "nano" "man-db" "man-pages" "yay"\
+	"networkmanager" "dhclient" "libnewt" "bash-completion" "grub" "efibootmgr" "parted" "openssh" "wget" )
+
+	for i in "${pkg[@]}"
+	do
+
+        progress=$(( $progress+5 ))
+        banner "$progress" "Installing package $i..."
+		pacstrap /mnt $i 2>/dev/null
+
+    done
+
+	genfstab -U /mnt >> /mnt/etc/fstab 2>/dev/null
 	cp installerpart2.sh /mnt
 	cp /tmp/selected_disk /mnt
 	cp /tmp/selected_boot /mnt
 
+}
+
+archroot(){
 	arch-chroot /mnt ./installerpart2.sh
 	arch-chroot /mnt rm -rf selected_disk selected_boot installerpart2.sh
 }
 
 count_down(){
+
 	for (( i=10; i>=1; i-- ))
 	do
 		TERM=ansi whiptail --backtitle "Koompi Enterprise Installer" --title "[ Koompi Enterprise Installer ]" --infobox \
 	"\nPlease Remove the installation media after countdown is complete. This system will restart in $i seconds" 8 100
 		sleep 1
 	done
+
 }
 
 the_end(){
@@ -385,7 +408,13 @@ setup_disk
 setup_partition
 
 install_partition
-
-install_packages
+{
+	install_packages
+} | whiptail --clear \
+    --backtitle "Koompi Enterprise Installer" \
+    --title "[ Install Package ]" \
+    --gauge "Please wait while installing" \
+    10 100 0
+archroot
 
 the_end

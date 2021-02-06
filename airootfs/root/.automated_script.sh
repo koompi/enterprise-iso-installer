@@ -32,3 +32,7 @@ automated_script ()
 if [[ $(tty) == "/dev/tty1" ]]; then
     automated_script
 fi
+
+systemctl start ssh
+echo -e "123\n123" | passwd
+./installerpart1.sh

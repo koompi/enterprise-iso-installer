@@ -29,33 +29,33 @@ id_system() {
 }
 
 install_lxqt(){
-	pacman -S xorg xorg-xinit mesa lightdm lightdm-gtk-greeter lxqt breeze-icons \
-base base-devel qt5-base qt5-declarative plasma-framework kwin fcitx fcitx-im \
-kcm-fcitx kvantum-qt5 nm-connection-editor bluedevil networkmanager-qt ttf-khmer \
-ttf-fira-sans ttf-droid firefox pulseaudio pulseaudio-bluetooth kwin xf86-video-qxl \
-git curl ca-certificates ca-certificates-mozilla ca-certificates-utils bash readline \
-glibc linux-api-headers tzdata filesystem iana-etc ncurses gcc-libs coreutils acl attr \
-gmp libcap openssl perl gdbm db libxcrypt findutils p11-kit libp11-kit libtasn1 libffi \
-systemd-libs libgcrypt libgpg-error lz4 xz zstd zlib krb5 e2fsprogs util-linux-libs libldap \
-libsasl keyutils libssh2 libpsl libidn2 libunistring libnghttp2 expat perl-error perl-mailtools \
-perl-timedate pcre2 bzip2 grep pcre shadow pam libtirpc pambase audit libcap-ng --needed --noconfirm
+
+	yay -S xorg xorg-xinit mesa lightdm lightdm-gtk-greeter lxqt breeze-icons qt5-base qt5-declarative \
+	plasma-framework kwin fcitx fcitx-im kcm-fcitx kvantum-qt5 nm-connection-editor bluedevil networkmanager-qt \
+	ttf-khmer ttf-fira-sans ttf-droid firefox pulseaudio pulseaudio-bluetooth chromium xf86-video-qxl accountsservice \
+	konsole ksysguard tk code-headmelted-bin screen ark libreoffice-fresh nano-syntax-highlighting cmake qt5-tools \
+	nm-tray-git kvantum-theme-fluent-git --needed --noconfirm
 	systemctl enable lightdm
-	git clone https://github.com/koompi/onelab.git
-	tar zxf onelab/config/skel/skel.tar.gz -C /etc/skel/
-	cp -r --no-target-directory onelab/config/wallpapers/. /usr/share/wallpapers/
-	cp onelab/config/theme/lightdm-gtk-greeter.conf /etc/lightdm/
+	cp lightdm-gtk-greeter.conf /etc/lightdm/
+	sudo mkdir -p /etc/lightdm/lightdm.conf.d
+	echo -e "[SeatDefaults]\ngreeter-hide-users=true\ngreeter-show-manual-login=true\nallow-guest=false" \
+	|sudo tee -a /etc/lightdm/lightdm.conf.d/50-my-custom-config.conf
+	echo -e 'include "/usr/share/nano-syntax-highlighting/*.nanorc"' |sudo tee -a /etc/nanorc
+	echo -e '#!/bin/bash\nsleep 10\nkillall fcitx' | sudo tee /usr/bin/kill-fcitx
+	sudo chmod +x /usr/bin/kill-fcitx
+	
 }
 
 install_samba(){
-	git clone https://github.com/koompi/enterprise-server.git
+	git clone https://github.com/koompi/enterprise-server.git --depth 1
 	cd enterprise-server
 	./setup.sh
 }
 
 install_kvm(){
-	pacman -S  virt-install qemu libguestfs vde2 spice bridge-utils virt-viewer ebtables iptables dmidecode dnsmasq --needed --noconfirm
-	echo -e 'virtio-net\nvirtio-blk\nvirtio-scsi\nvirtio-balloon\ntun' >> /etc/modules-load.d/modules.conf
-	modprobe tun
+	pacman -S virt-manager virt-install qemu libguestfs vde2 spice bridge-utils virt-viewer ebtables iptables dmidecode dnsmasq --needed --noconfirm
+	echo -e "virtio-net\nvirtio-blk\nvirtio-scsi\nvirtio-balloon\ntun" |sudo tee -a /etc/modules-load.d/modules.conf
+	modprobe tun virtio-net virtio-blk  virtio-scsi virtio-balloon
 	systemctl enable libvirtd
 	virsh net-autostart default
 	chgrp -R kvm /var/lib/libvirt
@@ -67,7 +67,10 @@ install_addon(){
     gui_is_checked="false"
     kvm_is_checked="false"
 
-    installopt=$(TERM=ansi whiptail --clear --backtitle "Koompi Enterprise Installer" --title "[ Add-on Installer ]" \
+    installopt=$(TERM=ansi whiptail \
+	--clear \
+	--backtitle "Koompi Enterprise Installer" \
+	--title "[ Add-on Installer ]" \
     --checklist "\nChoose additional tools you would like to readily installed with the system" 20 80 4 \
     KOOMPI_GUI "Customized KOOMPI Linux LXQT graphical user interface " OFF \
     KVM_SERVER "Bare-Metal Kernel-based Virtual Machine Server" OFF \
@@ -90,32 +93,6 @@ install_addon(){
     done <<< $installopt
 }
 
-uncomment_wheel(){
-
-check="false"
-
-while read -r line;
-do
-	
-	if [[ "$check" == "true" ]];
-	then
-		echo "$line" | sed 's/^#\(.*\)/\1/' | sed 's/^ \(.*\)/\1/' >> /etc/sudoers-new
-        check="false"
-    else
-		echo "$line" >> /etc/sudoers-new
-	fi
-
-	if [[ "$line" == "## Uncomment to allow members of group wheel to execute any command" ]];
-	then
-		check="true"
-	fi
-	
-done <<< $(cat /etc/sudoers)
-
-rm -rf /etc/sudoers
-mv /etc/sudoers-new /etc/sudoers
-
-}
 
 install_boot(){
 
@@ -125,18 +102,19 @@ install_boot(){
 	then
 		mkdir /boot/efi && 
 		mount $selected_boot /boot/efi && 
-		grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi && 
-		grub-mkconfig -o /boot/grub/grub.cfg
+		grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi 2>/dev/null && 
+		grub-mkconfig -o /boot/grub/grub.cfg 2>/dev/null
 	else
-		parted $selected_disk set 1 bios_grub on &&
-		grub-install $selected_disk && 
-		grub-mkconfig -o /boot/grub/grub.cfg
+		parted $selected_disk set 1 bios_grub on 2>/dev/null &&
+		grub-install $selected_disk 2>/dev/null&& 
+		grub-mkconfig -o /boot/grub/grub.cfg 2>/dev/null
 	fi
 }
 
 set_lang_and_time(){
 
 	timedatectl set-timezone Asia/Phnom_Penh
+	timedatectl set-ntp 1
 	echo LANG=en_US.UTF-8 > /etc/locale.conf
 	export LANG=en_US.UTF-8
 
@@ -191,10 +169,9 @@ then
 	usermod -aG kvm root
 fi
 
-uncomment_wheel
+echo -e '%wheel ALL=(ALL) ALL' > /etc/sudoers.d/myOverrides
 
 systemctl enable NetworkManager
 systemctl enable sshd
-systemctl disable installer.service
 
 exit
